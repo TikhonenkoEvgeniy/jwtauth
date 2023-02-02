@@ -2,6 +2,8 @@ package com.example.jwtauth;
 
 import com.example.jwtauth.entity.Credential;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -17,20 +19,20 @@ import java.util.Date;
 @Slf4j
 @Component
 public class JwtProvider {
-    @Value("${jwt.secret.access}")
-    private SecretKey jwtAccessSecret;
-    @Value("${jwt.secret.refresh}")
-    private SecretKey jwtRefreshSecret;
-    @Value("${jwt.access.lifetime.minutes}")
-    private int jwtAccessMinutesLive;
-    @Value("${jwt.refresh.lifetime.days}")
-    private int jwtRefreshDaysLive;
+    private final SecretKey jwtAccessSecret;
+    private final SecretKey jwtRefreshSecret;
+
+    public JwtProvider(@Value("${jwt.secret.access}") String jwtAccessSecret,
+                       @Value("${jwt.secret.refresh}") String jwtRefreshSecret) {
+        this.jwtAccessSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtAccessSecret));
+        this.jwtRefreshSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtRefreshSecret));
+    }
 
     public String generateAccessToken(@NonNull Credential credential) {
         final Date accessExpiration = Date.from(
                 LocalDateTime
                         .now()
-                        .plusMinutes(jwtAccessMinutesLive)
+                        .plusMinutes(5)
                         .atZone(ZoneId.systemDefault()).toInstant());
 
         return Jwts.builder()
@@ -46,7 +48,7 @@ public class JwtProvider {
         final Date refreshExpiration = Date.from(
                 LocalDateTime
                         .now()
-                        .plusDays(jwtRefreshDaysLive)
+                        .plusDays(30)
                         .atZone(ZoneId.systemDefault()).toInstant());
 
         return Jwts.builder()
