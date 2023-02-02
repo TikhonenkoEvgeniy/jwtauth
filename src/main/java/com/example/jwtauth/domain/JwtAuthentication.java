@@ -1,8 +1,7 @@
 package com.example.jwtauth.domain;
 
 import com.example.jwtauth.enums.Role;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -10,8 +9,7 @@ import javax.security.auth.Subject;
 import java.util.Collection;
 import java.util.Set;
 
-@Getter
-@Setter
+@Data
 public class JwtAuthentication implements Authentication {
     private boolean authenticated;
     private String username;

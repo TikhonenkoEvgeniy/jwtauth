@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class SecurityConfig {
+    private String[] paths = {"/api/auth/login", "/api/auth/token", "/api/registration/add"};
     private final JwtFilter jwtFilter;
 
     @Bean
@@ -27,7 +28,7 @@ public class SecurityConfig {
                 .and()
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers("/api/auth/login", "/api/auth/token", "/api/registration/add")
+                                .requestMatchers(paths)
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()
