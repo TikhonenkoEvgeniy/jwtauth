@@ -21,19 +21,22 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("login")
-    public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest request) throws CredentialNotFoundException, AuthException {
+    public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest request)
+            throws CredentialNotFoundException, AuthException {
         final JwtResponse token = authService.login(request);
         return ResponseEntity.ok(token);
     }
 
     @PostMapping("token")
-    public ResponseEntity<JwtResponse> getNewAccessToken(@RequestBody RefreshJwtRequest request) throws CredentialNotFoundException {
+    public ResponseEntity<JwtResponse> getNewAccessToken(@RequestBody RefreshJwtRequest request)
+            throws CredentialNotFoundException {
         final JwtResponse token = authService.getAccessToken(request.getRefreshToken());
         return ResponseEntity.ok(token);
     }
 
     @PostMapping("refresh")
-    public ResponseEntity<JwtResponse> getNewRefreshToken(@RequestBody RefreshJwtRequest request) throws CredentialNotFoundException {
+    public ResponseEntity<JwtResponse> getNewRefreshToken(@RequestBody RefreshJwtRequest request)
+            throws CredentialNotFoundException {
         final JwtResponse token = authService.refresh(request.getRefreshToken());
         return ResponseEntity.ok(token);
     }
