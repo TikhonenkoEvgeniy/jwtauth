@@ -1,7 +1,7 @@
 package com.example.jwtauth.controller;
 
 import com.example.jwtauth.domain.RegistrationRequest;
-import com.example.jwtauth.entity.User;
+import com.example.jwtauth.entity.Credential;
 import com.example.jwtauth.service.RegistrationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,10 +19,9 @@ public class RegistrationController {
 
     @PostMapping("add")
     public ResponseEntity<String> add(@RequestBody RegistrationRequest request) {
-        User user = new User(request.getLogin(), request.getPasswd(), true, request.getRoles());
-
-        registrationService.addUser(user);
-
+        Credential credential = new Credential(
+                request.getLogin(), request.getPasswd(), request.isActive(), request.getRoles());
+        registrationService.add(credential);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

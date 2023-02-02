@@ -1,9 +1,8 @@
 package com.example.jwtauth.service;
 
-import com.example.jwtauth.entity.User;
-import org.springframework.stereotype.Service;
+import com.example.jwtauth.entity.Credential;
+import lombok.NonNull;
 
-@Service
 public interface RegistrationService {
-    void addUser(User user);
+    void add(@NonNull Credential credential);
 }

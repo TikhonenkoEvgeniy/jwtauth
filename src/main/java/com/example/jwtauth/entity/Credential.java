@@ -35,4 +35,11 @@ public class Credential implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "user_roles")
     private Set<Role> roles;
+
+    public Credential(String login, String passwd, Boolean active, Set<Role> roles) {
+        this.login = login;
+        this.passwd = passwd;
+        this.active = active;
+        this.roles = roles;
+    }
 }

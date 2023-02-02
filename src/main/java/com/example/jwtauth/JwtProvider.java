@@ -1,9 +1,7 @@
 package com.example.jwtauth;
 
-import com.example.jwtauth.entity.User;
+import com.example.jwtauth.entity.Credential;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -19,40 +17,40 @@ import java.util.Date;
 @Slf4j
 @Component
 public class JwtProvider {
-    private final SecretKey jwtAccessSecret;
-    private final SecretKey jwtRefreshSecret;
+    @Value("${jwt.secret.access}")
+    private SecretKey jwtAccessSecret;
+    @Value("${jwt.secret.refresh}")
+    private SecretKey jwtRefreshSecret;
+    @Value("${jwt.access.lifetime.minutes}")
+    private int jwtAccessMinutesLive;
+    @Value("${jwt.refresh.lifetime.days}")
+    private int jwtRefreshDaysLive;
 
-    public JwtProvider(@Value("${jwt.secret.access}") String jwtAccessSecret,
-                       @Value("${jwt.secret.refresh}") String jwtRefreshSecret) {
-        this.jwtAccessSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtAccessSecret));
-        this.jwtRefreshSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtRefreshSecret));
-    }
-
-    public String generateAccessToken(@NonNull User user) {
+    public String generateAccessToken(@NonNull Credential credential) {
         final Date accessExpiration = Date.from(
                 LocalDateTime
                         .now()
-                        .plusMinutes(5)
+                        .plusMinutes(jwtAccessMinutesLive)
                         .atZone(ZoneId.systemDefault()).toInstant());
 
         return Jwts.builder()
-                .setSubject(user.getLogin())
+                .setSubject(credential.getLogin())
                 .setExpiration(accessExpiration)
                 .signWith(this.jwtAccessSecret)
-                .claim("roles", user.getRoles())
-                .claim("login", user.getLogin())
+                .claim("roles", credential.getRoles())
+                .claim("login", credential.getLogin())
                 .compact();
     }
 
-    public String generateRefreshToken(@NonNull User user) {
+    public String generateRefreshToken(@NonNull Credential credential) {
         final Date refreshExpiration = Date.from(
                 LocalDateTime
                         .now()
-                        .plusDays(30)
+                        .plusDays(jwtRefreshDaysLive)
                         .atZone(ZoneId.systemDefault()).toInstant());
 
         return Jwts.builder()
-                .setSubject(user.getLogin())
+                .setSubject(credential.getLogin())
                 .setExpiration(refreshExpiration)
                 .signWith(this.jwtRefreshSecret)
                 .compact();

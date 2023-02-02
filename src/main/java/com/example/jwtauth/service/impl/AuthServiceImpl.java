@@ -4,30 +4,35 @@ import com.example.jwtauth.JwtProvider;
 import com.example.jwtauth.domain.JwtAuthentication;
 import com.example.jwtauth.domain.JwtRequest;
 import com.example.jwtauth.domain.JwtResponse;
-import com.example.jwtauth.entity.Token;
-import com.example.jwtauth.entity.User;
+import com.example.jwtauth.entity.Credential;
+import com.example.jwtauth.entity.JwtToken;
 import com.example.jwtauth.exception.AuthException;
+import com.example.jwtauth.repo.JwtTokenRepo;
 import com.example.jwtauth.service.AuthService;
-import com.example.jwtauth.service.UserService;
+import com.example.jwtauth.service.CredentialService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.CredentialNotFoundException;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private final UserService userService;
+    private final JwtTokenRepo jwtTokenRepo;
+    private final CredentialService credentialService;
     private final JwtProvider jwtProvider;
 
     @Override
-    public JwtResponse login(@NonNull JwtRequest authRequest) throws AuthException {
-        final User user = userService.getByLogin(authRequest.getLogin());
-        if (user.getPasswd().equals(authRequest.getPasswd())) {
-            user.setToken(new Token(jwtProvider.generateAccessToken(user),
-                    jwtProvider.generateRefreshToken(user)));
-            userService.save(user);
-            return new JwtResponse(user.getToken().getAccess(), user.getToken().getRefresh());
+    public JwtResponse login(@NonNull JwtRequest authRequest) throws CredentialNotFoundException {
+        Credential credential = credentialService.getByLogin(authRequest.getLogin());
+        if (credential.getPasswd().equals(authRequest.getPasswd())) {
+            JwtToken jwtToken = new JwtToken(credential.getLogin(),
+                    jwtProvider.generateAccessToken(credential),
+                    jwtProvider.generateRefreshToken(credential));
+            jwtTokenRepo.save(jwtToken);
+            return new JwtResponse(jwtToken.getAccess(), jwtToken.getRefresh());
         }
         else {
             throw new AuthException("Err: Incorrect password");
@@ -35,25 +40,33 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public JwtResponse getAccessToken(@NonNull String refreshToken) {
+    public JwtResponse getAccessToken(@NonNull String refreshToken) throws CredentialNotFoundException {
         if (jwtProvider.validateRefreshToken(refreshToken)) {
-            User user = userService.getByLogin(jwtProvider.getRefreshClaims(refreshToken).getSubject());
-            if (user.getToken().getRefresh() != null && user.getToken().getRefresh().equals(refreshToken)) {
-                return new JwtResponse(
-                        jwtProvider.generateAccessToken(user), null);
+            Credential credential = credentialService.getByLogin(
+                    jwtProvider.getRefreshClaims(refreshToken).getSubject());
+            JwtToken jwtToken = jwtTokenRepo.findToken(credential.getLogin());
+
+            if (jwtToken.getRefresh() != null && jwtToken.getRefresh().equals(refreshToken)) {
+                jwtToken.setAccess(jwtProvider.generateAccessToken(credential));
+                jwtTokenRepo.save(jwtToken);
+                return new JwtResponse(jwtToken.getAccess(), null);
             }
         }
         return new JwtResponse(null, null);
     }
 
     @Override
-    public JwtResponse refresh(@NonNull String refreshToken) {
+    public JwtResponse refresh(@NonNull String refreshToken) throws CredentialNotFoundException {
         if (jwtProvider.validateRefreshToken(refreshToken)) {
-            User user = userService.getByLogin(jwtProvider.getRefreshClaims(refreshToken).getSubject());
-            if (user.getToken().getRefresh() != null && user.getToken().getRefresh().equals(refreshToken)) {
-                user.getToken().setRefresh(jwtProvider.generateRefreshToken(user));
-                userService.save(user);
-                return new JwtResponse(jwtProvider.generateAccessToken(user), user.getToken().getRefresh());
+            Credential credential = credentialService.getByLogin(
+                    jwtProvider.getRefreshClaims(refreshToken).getSubject());
+            JwtToken jwtToken = jwtTokenRepo.findToken(credential.getLogin());
+
+            if (jwtToken.getRefresh() != null && jwtToken.getRefresh().equals(refreshToken)) {
+                jwtToken.setAccess(jwtProvider.generateAccessToken(credential));
+                jwtToken.setRefresh(jwtProvider.generateRefreshToken(credential));
+                jwtTokenRepo.save(jwtToken);
+                return new JwtResponse(jwtToken.getAccess(), jwtToken.getRefresh());
             }
         }
         throw new AuthException("Err: invalid token");

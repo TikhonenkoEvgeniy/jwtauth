@@ -11,5 +11,6 @@ import java.util.Set;
 public class RegistrationRequest {
     private String login;
     private String passwd;
+    private boolean active;
     private Set<Role> roles;
 }

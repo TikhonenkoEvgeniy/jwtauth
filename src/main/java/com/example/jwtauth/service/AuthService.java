@@ -5,12 +5,12 @@ import com.example.jwtauth.domain.JwtRequest;
 import com.example.jwtauth.domain.JwtResponse;
 import jakarta.security.auth.message.AuthException;
 import lombok.NonNull;
-import org.springframework.stereotype.Service;
 
-@Service
+import javax.security.auth.login.CredentialNotFoundException;
+
 public interface AuthService {
-    JwtResponse login(@NonNull JwtRequest authRequest) throws AuthException;
-    JwtResponse getAccessToken(@NonNull String refreshToken);
-    JwtResponse refresh(@NonNull String refreshToken);
+    JwtResponse login(@NonNull JwtRequest authRequest) throws AuthException, CredentialNotFoundException;
+    JwtResponse getAccessToken(@NonNull String refreshToken) throws CredentialNotFoundException;
+    JwtResponse refresh(@NonNull String refreshToken) throws CredentialNotFoundException;
     JwtAuthentication getAuthInfo();
 }
