@@ -20,7 +20,7 @@ public class RegistrationController {
     @PostMapping("add")
     public ResponseEntity<String> add(@RequestBody RegistrationRequest request) {
         Credential credential = new Credential(
-                request.getLogin(), request.getPasswd(), request.isActive(), request.getRoles());
+                request.getLogin(), request.getPasswd().getBytes(), request.isActive(), request.getRoles());
         registrationService.add(credential);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

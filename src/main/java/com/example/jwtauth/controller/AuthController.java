@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.security.auth.login.CredentialNotFoundException;
+import java.security.NoSuchAlgorithmException;
 
 @RestController
 @RequestMapping("api/auth")
@@ -22,7 +23,7 @@ public class AuthController {
 
     @PostMapping("login")
     public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest request)
-            throws CredentialNotFoundException, AuthException {
+            throws CredentialNotFoundException, AuthException, NoSuchAlgorithmException {
         final JwtResponse token = authService.login(request);
         return ResponseEntity.ok(token);
     }

@@ -25,10 +25,10 @@ public class Credential implements Serializable {
     private String login;
 
     @Column(name = "password", nullable = false)
-    private String passwd;
+    private byte[] passwd;
 
     @Column(name = "is_active")
-    private Boolean active;
+    private boolean active;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
@@ -36,7 +36,7 @@ public class Credential implements Serializable {
     @Column(name = "user_roles")
     private Set<Role> roles;
 
-    public Credential(String login, String passwd, Boolean active, Set<Role> roles) {
+    public Credential(String login, byte[] passwd, boolean active, Set<Role> roles) {
         this.login = login;
         this.passwd = passwd;
         this.active = active;

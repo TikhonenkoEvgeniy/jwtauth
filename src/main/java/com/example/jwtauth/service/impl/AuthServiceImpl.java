@@ -16,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.security.auth.login.CredentialNotFoundException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 @Service
 @RequiredArgsConstructor
@@ -25,9 +27,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProvider jwtProvider;
 
     @Override
-    public JwtResponse login(@NonNull JwtRequest authRequest) throws CredentialNotFoundException {
+    public JwtResponse login(@NonNull JwtRequest authRequest) throws CredentialNotFoundException, NoSuchAlgorithmException {
         Credential credential = credentialService.getByLogin(authRequest.getLogin());
-        if (credential.getPasswd().equals(authRequest.getPasswd())) {
+        if (Arrays.equals(credential.getPasswd(), authRequest.getPasswd().getBytes()) && credential.isActive()) {
             JwtToken jwtToken = new JwtToken(credential.getLogin(),
                     jwtProvider.generateAccessToken(credential),
                     jwtProvider.generateRefreshToken(credential));
@@ -35,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
             return new JwtResponse(jwtToken.getAccess(), jwtToken.getRefresh());
         }
         else {
-            throw new AuthException("Err: Incorrect password");
+            throw new AuthException("Err: Incorrect password or login is not active");
         }
     }
 
